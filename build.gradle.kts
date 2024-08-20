@@ -1,13 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.kotlinxSerialization)
-}
-
-group = "me.user"
-version = "1.0-SNAPSHOT"
-
-repositories {
-    mavenCentral()
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 kotlin {
@@ -33,7 +25,6 @@ kotlin {
 
     sourceSets {
         nativeMain.dependencies {
-            implementation(libs.kotlinxSerializationJson)
         }
     }
 }
