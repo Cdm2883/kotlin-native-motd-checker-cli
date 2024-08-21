@@ -4,7 +4,7 @@ Simple Minecraft MOTD Checker Command Line Tool written in Kotlin/Native!
 
 # Highlights
 
-- Pure Kotlin
+- Only Kotlin
 - Use Kotlin/Native to run native code directly instead of running on the JVM
 - Support multiplatform
 
