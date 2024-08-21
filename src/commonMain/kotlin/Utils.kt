@@ -11,6 +11,6 @@ expect fun getSelfExecutableName(): String?
 fun getCurrentTimeMillis() = memScoped {
     @Suppress("SpellCheckingInspection")
     val timespec = alloc<timespec>()
-    clock_gettime(CLOCK_REALTIME, timespec.ptr)
+    clock_gettime(CLOCK_REALTIME.convert(), timespec.ptr)
     timespec.tv_sec * 1000L + timespec.tv_nsec / 1_000_000L
 }

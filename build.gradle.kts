@@ -49,7 +49,7 @@ kotlin {
     )
 }
 
-tasks.register("linkReleaseExecutableCurrentTarget") {
+tasks.register<Copy>("linkReleaseExecutableCurrentTarget") {
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -62,6 +62,8 @@ tasks.register("linkReleaseExecutableCurrentTarget") {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
     dependsOn("linkReleaseExecutable$currentTarget")
+    from("build/bin/${currentTarget.run { this[0].lowercaseChar() + substring(1) }}/releaseExecutable")
+    into("build/bin/current/releaseExecutable")
     doLast {
         println("Kotlin/Native application built successfully!")
     }
