@@ -42,22 +42,39 @@ val McFormattingAnsiExtras = mapOf(
     'o' to "\u001B[3m",  // italic
     'r' to "\u001B[0m",  // clear
 )
+fun hex2ansi(hex: Int): String {
+    val r = (hex shr 16) and 0xFF
+    val g = (hex shr 8) and 0xFF
+    val b = hex and 0xFF
+    return "\u001B[38;2;${r};${g};${b}m"
+}
 fun String.toAnsiColorFormat(): String {
-    if (NoColor || !this.contains(SS)) return this
+    if (NoColor) return this
 
-    val regex = Regex("$SS[a-z0-9]", RegexOption.IGNORE_CASE)
+    var result = ""
+    var i = 0
+    while (i < this.length) {
+        if (this[i] == SS[0] && i + 1 < this.length) {
+            val code = this[i + 1]
+            val color = McFormattingColors[code]
+            val extra = McFormattingAnsiExtras[code]
 
-    fun hex2ansi(hex: Int): String {
-        val r = (hex shr 16) and 0xFF
-        val g = (hex shr 8) and 0xFF
-        val b = hex and 0xFF
-        return "\u001B[38;2;${r};${g};${b}m"
+            if (color != null) {
+                result += hex2ansi(color)
+            } else if (extra != null) {
+                result += extra
+            } else {
+                result += SS
+                result += code
+            }
+
+            i += 2
+        } else {
+            result += this[i]
+            i++
+        }
     }
 
-    val formatted = this.replace(regex) { matchResult ->
-        val code = matchResult.value[1]
-        McFormattingColors[code]?.let { hex2ansi(it) } ?: McFormattingAnsiExtras[code] ?: "$SS$code"
-    }
-
-    return formatted + McFormattingAnsiExtras['r']
+    result += McFormattingAnsiExtras['r']
+    return result
 }
