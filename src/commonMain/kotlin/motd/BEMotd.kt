@@ -16,10 +16,10 @@ class BEMotd(
     override val delay: Int
 ) : Motd {
     override fun toString() = printTable(
-        "MOTD" to motd,
+        "MOTD" to motd.toAnsiColorFormat(),
         "Version" to "$version ($protocol)",
         "Players" to "$playerOnline / $playerMax",
-        "World" to world,
+        "World" to world.toAnsiColorFormat(),
         "GameMode" to "$mode ($modeNumber)",
         "Port" to "${portV4}_v4 ${portV6}_v6",
         "Delay" to "${delay}ms",

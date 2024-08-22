@@ -10,7 +10,7 @@ fun printTable(vararg rows: Pair<String, String>): String {
 
     return buildString {
         rows.forEach {
-            append("${it.first.padEnd(column1)} -> ${it.second}\n")
+            append("${it.first.padEnd(column1)}   ${it.second}\n")
         }
     }.dropLast(1)
 }
