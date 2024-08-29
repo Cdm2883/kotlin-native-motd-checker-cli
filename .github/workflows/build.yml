@@ -15,12 +15,19 @@ jobs:
         targets:
           - os: ubuntu-latest
             name: linux-x64
+            upx: amd64_linux
           - os: macos-latest
             name: macos-arm64
           - os: windows-latest
             name: windows-x64
+            upx: win64
     runs-on: ${{ matrix.targets.os }}
+    env:
+      BUILD_DIR: "build/bin/current/releaseExecutable"
+      UPX_VERSION: "4.2.4"
+      UPX_OPTIONS: "--ultra-brute"
     steps:
+
       - name: Checkout main
         uses: actions/checkout@v4
 
@@ -33,8 +40,38 @@ jobs:
       - name: Build for ${{ matrix.targets.name }}
         run: ./gradlew :linkReleaseExecutableCurrentTarget
 
-      - name: Upload build artifacts
+      - name: Download UPX (Linux)
+        if: matrix.targets.os == 'ubuntu-latest'
+        run: |
+          wget https://github.com/upx/upx/releases/download/v${{ env.UPX_VERSION }}/upx-${{ env.UPX_VERSION }}-${{ matrix.targets.upx }}.tar.xz -O upx.tar.xz
+          tar -xf upx.tar.xz --strip-components 1
+          sudo mv upx /usr/local/bin/
+
+      - name: Install UPX (MacOS)
+        if: matrix.targets.os == 'macos-latest'
+        run: brew install upx
+
+      - name: Download UPX (Windows)
+        if: matrix.targets.os == 'windows-latest'
+        run: |
+          powershell -Command "Invoke-WebRequest -Uri 'https://github.com/upx/upx/releases/download/v${{ env.UPX_VERSION }}/upx-${{ env.UPX_VERSION }}-${{ matrix.targets.upx }}.zip' -OutFile 'upx.zip'"
+          powershell -Command "Expand-Archive -Path 'upx.zip' -DestinationPath 'upx'"
+          move upx\upx-${{ env.UPX_VERSION }}-${{ matrix.targets.upx }}\upx.exe C:\Windows\System32\upx.exe
+
+      - name: Compress executables
+        run: |
+          find ${{ env.BUILD_DIR }}/ -type f -name "*exe" -exec sh -c '
+            for file; do
+              dir=$(dirname "$file")
+              base=$(basename "$file")
+              compressed_file="$dir/compressed-$base"
+              upx ${{ env.UPX_OPTIONS }} -o "$compressed_file" "$file"
+            done
+          ' sh {} +
+        shell: bash
+
+      - name: Upload build & compressed artifacts
         uses: actions/upload-artifact@v4
         with:
           name: motd-checker-${{ matrix.targets.name }}-${{ github.sha }}
-          path: build/bin/current/releaseExecutable/
+          path: ${{ env.BUILD_DIR }}/
