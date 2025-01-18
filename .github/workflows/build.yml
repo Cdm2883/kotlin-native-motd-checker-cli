@@ -47,10 +47,6 @@ jobs:
           tar -xf upx.tar.xz --strip-components 1
           sudo mv upx /usr/local/bin/
 
-      - name: Install UPX (MacOS)
-        if: matrix.targets.os == 'macos-latest'
-        run: brew install upx
-
       - name: Download UPX (Windows)
         if: matrix.targets.os == 'windows-latest'
         run: |
@@ -59,6 +55,7 @@ jobs:
           move upx\upx-${{ env.UPX_VERSION }}-${{ matrix.targets.upx }}\upx.exe C:\Windows\System32\upx.exe
 
       - name: Compress executables
+        if: matrix.targets.os != 'macos-latest'
         run: |
           find ${{ env.BUILD_DIR }}/ -type f -name "*exe" -exec sh -c '
             for file; do
