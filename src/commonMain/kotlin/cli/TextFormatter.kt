@@ -2,7 +2,7 @@ package cli
 
 import kotlin.math.max
 
-fun printTable(vararg rows: Pair<String, String>): String {
+fun formatTable(vararg rows: Pair<String, String>): String {
     var column1 = Int.MIN_VALUE
     rows.forEach {
         column1 = max(column1, it.first.length)
@@ -10,7 +10,7 @@ fun printTable(vararg rows: Pair<String, String>): String {
 
     return buildString {
         rows.forEach {
-            append("${it.first.padEnd(column1)}   ${it.second}\n")
+            append("$BOLD_ANSI${it.first.padEnd(column1)}$CLEAR_ANSI   ${it.second}\n")
         }
     }.dropLast(1)
 }

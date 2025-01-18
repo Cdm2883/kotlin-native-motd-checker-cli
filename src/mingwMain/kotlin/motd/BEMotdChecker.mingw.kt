@@ -2,10 +2,8 @@ package motd
 
 import PlatformError
 import getCurrentTimeMillis
-import initWinsock
 import kotlinx.cinterop.*
 import platform.posix.*
-import sockAddrIn
 
 actual object BEMotdChecker : BEMotdChecker0() {
     override fun ping(host: String, port: UShort) = memScoped {

@@ -1,25 +1,16 @@
+package motd
+
+import MAKEWORD
+import PlatformError
 import kotlinx.cinterop.*
-import platform.posix.*
+import platform.posix.WSAData
 import platform.posix.WSAStartup
-import platform.windows.*
-
-actual class PlatformError actual constructor(message: String?) : Exception("$message (${GetLastError()})")
-
-actual fun getSelfExecutableName(): String? {
-    val buffer = UShortArray(MAX_PATH)
-    val bufferPointer = buffer.usePinned { it.addressOf(0).reinterpret<UShortVarOf<UShort>>() }
-    val length = GetModuleFileNameW(null, bufferPointer, buffer.size.toUInt())
-    return if (length > 0u) {
-        val path = buildString {
-            for (i in 0 until length.toInt())
-                append(Char(buffer[i]))
-        }
-        path.substringAfterLast('\\')
-    } else null
-}
-
-@Suppress("FunctionName", "SpellCheckingInspection")
-fun MAKEWORD(low: Byte, high: Byte) = ((high.toUShort().toInt() shl 8) or low.toUShort().toInt()).toUShort()
+import platform.posix.sockaddr_in
+import platform.posix.u_long
+import platform.windows.addrinfo
+import platform.windows.freeaddrinfo
+import platform.windows.getaddrinfo
+import platform.windows.htons
 
 @Suppress("SpellCheckingInspection")
 fun MemScope.initWinsock() {
@@ -27,7 +18,6 @@ fun MemScope.initWinsock() {
     if (WSAStartup(MAKEWORD(2, 2), wsaData.ptr) != 0) throw PlatformError("WSAStartup failed")
 }
 
-@Suppress("RemoveRedundantQualifierName")
 fun MemScope.resolveHost(host: String): u_long {
     val hints = alloc<addrinfo>()
     val result = alloc<CPointerVar<addrinfo>>()
@@ -41,7 +31,6 @@ fun MemScope.resolveHost(host: String): u_long {
     return addr ?: throw PlatformError("Resolve IP address failed")
 }
 
-@Suppress("RemoveRedundantQualifierName")
 fun MemScope.sockAddrIn(host: u_long, port: UShort) = alloc<sockaddr_in>().apply {
     sin_family = platform.posix.AF_INET.convert()
     sin_port = htons(port)

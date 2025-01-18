@@ -2,6 +2,13 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
 
+version = libs.versions.motd.checker.cli.get()
+
+val generateBuildConfigDir = layout.buildDirectory.file("generated/src").get().asFile
+val buildConfigs = mapOf(
+    "VERSION" to "\"$version\"",
+)
+
 kotlin {
     arrayOf(
         macosArm64(),
@@ -17,6 +24,7 @@ kotlin {
         }
     }
 
+    sourceSets["commonMain"].kotlin.srcDir(generateBuildConfigDir)
     sourceSets {
         val macosArm64Main by getting
         val macosX64Main by getting
@@ -44,6 +52,18 @@ kotlin {
     )
 }
 
+val generateBuildConfig = tasks.register("generateBuildConfig") {
+    doLast {
+        generateBuildConfigDir.apply { mkdirs() }
+            .resolve("BuildConfig.kt").writeText("""
+            |object BuildConfig {
+            |    ${buildConfigs.map { (name, value) -> "const val $name = $value" }
+                .joinToString("|\n")}
+            |}
+        """.trimMargin())
+    }
+}
+
 val currentTarget by lazy {
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
@@ -60,7 +80,7 @@ val currentTarget by lazy {
 
 tasks.register<Copy>("linkReleaseExecutableCurrentTarget") {
     fun String.lowercaseFirst() = this[0].lowercaseChar() + substring(1)
-    dependsOn("linkReleaseExecutable$currentTarget")
+    dependsOn(generateBuildConfig, "linkReleaseExecutable$currentTarget")
     from("build/bin/${currentTarget.lowercaseFirst()}/releaseExecutable")
     into("build/bin/current/releaseExecutable")
     doLast {
@@ -69,5 +89,5 @@ tasks.register<Copy>("linkReleaseExecutableCurrentTarget") {
 }
 
 tasks.register("runDebugExecutableCurrentTarget") {
-    dependsOn("runDebugExecutable$currentTarget")
+    dependsOn(generateBuildConfig, "runDebugExecutable$currentTarget")
 }
