@@ -1,7 +1,3 @@
-@file:Suppress("SpellCheckingInspection")
-
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
@@ -42,15 +38,13 @@ kotlin {
         mingwX64Main.dependsOn(mingwMain)
     }
 
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions.freeCompilerArgs.addAll(
         "-Xexpect-actual-classes",
         "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
     )
 }
 
-fun String.lowercaseFirst() = this[0].lowercaseChar() + substring(1)
-val currentTarget = run {
+val currentTarget by lazy {
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -60,16 +54,17 @@ val currentTarget = run {
         hostOs == "Linux" && isArm64 -> "LinuxArm64"
         hostOs == "Linux" && !isArm64 -> "LinuxX64"
         isMingwX64 -> "MingwX64"
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+        else -> error("Host OS is not supported in Kotlin/Native.")
     }
 }
 
 tasks.register<Copy>("linkReleaseExecutableCurrentTarget") {
+    fun String.lowercaseFirst() = this[0].lowercaseChar() + substring(1)
     dependsOn("linkReleaseExecutable$currentTarget")
     from("build/bin/${currentTarget.lowercaseFirst()}/releaseExecutable")
     into("build/bin/current/releaseExecutable")
     doLast {
-        println("Kotlin/Native application built successfully!")
+        println("Kotlin/Native application built successfully! [$currentTarget]")
     }
 }
 
