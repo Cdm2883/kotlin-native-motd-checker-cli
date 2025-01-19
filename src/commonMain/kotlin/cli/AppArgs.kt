@@ -5,7 +5,7 @@ import getSelfExecutableName
 import motd.GameEdition
 import platform.posix.exit
 
-val CliHelpMessage
+inline val CliHelpMessage
     get() = """
     Usage: ./${getSelfExecutableName()} [options] [address]
 
@@ -73,5 +73,5 @@ inline fun handleArgs(args: Array<String>) = try {
     println()
     println("See more by option -h or --help")
     exit(2)
-    throw Error()
+    throw e  // UNREACHABLE
 }
